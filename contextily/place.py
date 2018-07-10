@@ -69,7 +69,7 @@ class Place(object):
         self.geocode = resp
 
         # Get map params
-        self.zoom = calculate_zoom(self.w, self.s, self.e, self.n) if zoom is None else zoom
+        self.zoom = _calculate_zoom(self.w, self.s, self.e, self.n) if zoom is None else zoom
         self.zoom = int(self.zoom)
         if self.zoom_adjust is not None:
             self.zoom += zoom_adjust
@@ -102,55 +102,56 @@ class Place(object):
             self.place, self.n_tiles, self.zoom, self.im.shape[:2])
         return s
 
-def plot_map(place, bbox=None, title=None, ax=None, axis_off=True, latlon=True):
-    """Plot a map of the given place.
+    def plot(place, bbox=None, title=None, ax=None, 
+             axis_off=True, latlon=True, interpolation='sinc'):
+        """Plot a map of the given place.
 
-    Parameters
-    ----------
-    place : instance of Place | ndarray
-        The map to plot. If an ndarray, this must be an image corresponding
-        to a map. If an instance of ``Place``, the extent of the image and name
-        will be inferred from the bounding box.
-    ax : instance of matplotlib Axes object | None
-        The axis on which to plot. If None, one will be created.
-    axis_off : bool
-        Whether to turn off the axis border and ticks before plotting.
+        Parameters
+        ----------
+        place : instance of Place | ndarray
+            The map to plot. If an ndarray, this must be an image corresponding
+            to a map. If an instance of ``Place``, the extent of the image and name
+            will be inferred from the bounding box.
+        ax : instance of matplotlib Axes object | None
+            The axis on which to plot. If None, one will be created.
+        axis_off : bool
+            Whether to turn off the axis border and ticks before plotting.
 
-    Returns
-    -------
-    ax : instance of matplotlib Axes object | None
-        The axis on the map is plotted.
-    """
-    if not isinstance(place, Place):
-        im = place
-        bbox = bbox
-        title = title
-    else:
-        im = place.im
-        if bbox is None:
-            bbox = place.bbox_map
-            if latlon is True:
-                # Convert w, s, e, n into lon/lat
-                w, e, s, n = bbox
-                w, s = _sm2ll(w, s)
-                e, n = _sm2ll(e, n)
-                bbox = [w, e, s, n]
+        Returns
+        -------
+        ax : instance of matplotlib Axes object | None
+            The axis on the map is plotted.
+        """
+        if not isinstance(place, Place):
+            im = place
+            bbox = bbox
+            title = title
+        else:
+            im = place.im
+            if bbox is None:
+                bbox = place.bbox_map
+                if latlon is True:
+                    # Convert w, s, e, n into lon/lat
+                    w, e, s, n = bbox
+                    w, s = _sm2ll(w, s)
+                    e, n = _sm2ll(e, n)
+                    bbox = [w, e, s, n]
 
-        title = place.place if title is None else title
+            title = place.place if title is None else title
 
-    if ax is None:
-        fig, ax = plt.subplots(figsize=(15, 15))
-    ax.imshow(im, extent=bbox)
-    ax.set(xlabel="Longitude", ylabel="Latitude")
-    if title is not None:
-        ax.set(title=title)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(15, 15))
+        ax.imshow(im, extent=bbox, interpolation=interpolation)
+        ax.set(xlabel="Longitude", ylabel="Latitude")
+        if title is not None:
+            ax.set(title=title)
 
-    if axis_off is True:
-        ax.set_axis_off()
-    return ax
+        if axis_off is True:
+            ax.set_axis_off()
+        return ax
 
 
-def calculate_zoom(w, s, e, n):
+def _calculate_zoom(w, s, e, n):
     """Automatically choose a zoom level given a desired number of tiles.
 
     .. note:: all values are interpreted as latitude / longitutde.

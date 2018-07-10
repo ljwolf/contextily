@@ -1,5 +1,5 @@
 from . import sources
-from .place import calculate_zoom
+from .place import _calculate_zoom
 from .tile import bounds2img
 from warnings import warn
 
@@ -33,7 +33,7 @@ def add_basemap_to_axis(ax, zoom=None, url=sources.ST_TERRAIN,
         """
         left, right, bottom, top = ax.axis()
         if zoom is None:
-            calculate_zoom(left, bottom, right, top)
+            _calculate_zoom(left, bottom, right, top)
         basemap, bounds = bounds2img(left, bottom, right, top, zoom=zoom, url=url)
         ax.imshow(basemap, extent=bounds, interpolation=interpolation, **imshow_kws)
         ax.axis((left, right, bottom, top))
